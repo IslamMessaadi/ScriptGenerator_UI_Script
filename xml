@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2023-02-12 12:43:32">
+<sys_ui_script action="INSERT_OR_UPDATE">
+<active>true</active>
+<description/>
+<global>true</global>
+<ignore_in_now_experience>false</ignore_in_now_experience>
+<name>ScriptGenerator</name>
+<script><![CDATA[var OPEN_AI_KEY = "YOUR_API_KEY";
+var OPEN_AI_MODEL = "text-davinci-003";
+var OPEN_AI_MAX_TOKENS = 250;
+var OPEN_AI_TEMPERATURE = 0.5;
+
+Event.observe(document, 'keyup', function(e) {
+    //console.clear();
+    var scriptDOMPattern = e.target.parentNode.parentNode.parentNode || null;
+    if (scriptDOMPattern.id && scriptDOMPattern.id != "") {
+        if (!/^(script)|(\w*\.script)/gim.test(scriptDOMPattern.id)) return;
+        if (/\/\/\s*(\w.*)\s+ai\*/gi.test(scriptDOMPattern.innerText)) {
+            var prompet = (scriptDOMPattern.innerText).match(/\/\/\s*(\w.*)\s+ai\*/gi)[0].slice(2, -3);
+            scriptGenerator(prompet, scriptDOMPattern);
+        }
+    }
+});
+
+function unescapeHTML(html) {
+  var textarea = document.createElement("textarea");
+  textarea.innerHTML = html;
+  return textarea.value;
+}
+
+function scriptGenerator(prompet, scriptDOMPattern) {
+    var raw = JSON.stringify({
+        "model": this.OPEN_AI_MODEL,
+        "prompt": prompet,
+        "temperature": this.OPEN_AI_TEMPERATURE,
+        "max_tokens": this.OPEN_AI_MAX_TOKENS,
+    });
+    fetch('https://api.openai.com/v1/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.OPEN_AI_KEY
+            },
+            body: raw
+        })
+        .then(function(response) {
+            return response.json()
+        })
+        .then(function(data) {
+			var text= "//AI :: Start\n" + data.choices[0].text.trim() + "\n//AI :: End";
+
+            var output = g_form.getValue("script").replace(/\/\/((\w*)|(\W*)(\D*))ai\*/g,  text);
+			g_form.setValue("script", output);
+        })
+        .catch(function(error) {
+            //console.error(error);
+        });
+}]]></script>
+<script_name/>
+<sys_class_name>sys_ui_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2023-02-11 13:24:39</sys_created_on>
+<sys_id>8d713d44470d6510042e8c38c26d4314</sys_id>
+<sys_mod_count>120</sys_mod_count>
+<sys_name>ScriptGenerator</sys_name>
+<sys_package display_value="Global" source="global">global</sys_package>
+<sys_policy/>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sys_ui_script_8d713d44470d6510042e8c38c26d4314</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2023-02-12 12:18:58</sys_updated_on>
+<ui_type>0</ui_type>
+<use_scoped_format>false</use_scoped_format>
+</sys_ui_script>
+</unload>
